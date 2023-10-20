@@ -1,0 +1,16 @@
+{
+  "scripts": {
+    "frontend": "yarn dev --prefix ../astro-blog/",
+    "backend": "yarn dev --prefix ../headless-blog/",
+    "setup:frontend": "cd astro-blog && yarn",
+    "setup:backend": "cd headless-blog && yarn",
+    "setup": "yarn install && yarn setup:frontend && yarn setup:backend",
+    "dev": "concurrently \"cd headless-blog && yarn develop\" \"cd astro-blog && yarn dev\"",
+    "seed": "cd headless-blog && yarn strapi import -f ../seed-data.tar.gz",
+    "export": "cd headless-blog && yarn strapi export --no-encrypt -f ../seed-data",
+    "repo:upstream": "git fetch upstream && git merge upstream/main"
+  },
+  "dependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
