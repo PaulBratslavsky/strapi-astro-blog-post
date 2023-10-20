@@ -525,6 +525,7 @@ const { posts } = Astro.props;
   }
 </div>
 
+
 ```
 
 The `BlogGrid` component is a container with a list of `BlogGridItems`. You can notice it accepts a post, a prop, and maps it to the `BlogGridItem` component while passing the single Post as the post prop.
@@ -533,60 +534,183 @@ Creating the single blog item.
 
 This particular component can be arguable to make as a page, but I will make this a component in this tutorial. Go ahead a create a file under `src\components\SingleBlogItem.jsx` and copy and paste the following lines of code.
 
-```
-    import { formatDistance, format } from 'date-fns';
-    import ReactMarkdown from 'react-markdown';
-    export default function SingleBlog({ post }) {
-        const { title, content, featuredImage, created_at, updated_at, readingTime, author } = post || {};
-        return (
-            <>
-                <div className="my-4 text-center">
-                    <h1 className="text-center text-4xl leading-tight text-gray-900 my-4 font-bold">{title}</h1>
-                    <div className="text-gray-500 flex justify-center items-center space-x-2">
-                        <span className="flex space-x-2 items-center overflow-hidden">
-                            <img
-                                class="inline-block h-8 w-8 rounded-full ring-2 ring-white"
-                                src={
-                                    author?.bioImage?.url
-                                        ? `http://localhost:1337${author?.bioImage?.url}`
-                                        : 'https://via.placeholder.com/1080'
-                                }
-                                alt="author picture"
-                            />
-                            <p className="font-medium text-xs text-gray-600 cursor-pointer">{author?.name}</p>
-                        </span>
-                        <span>&middot;</span>
-                        <span>{format(new Date(created_at), 'MM/dd/yyyy')}</span>
-                        <span>&middot;</span>
-                        <span>{readingTime}</span>
-                    </div>
-                </div>
-                <div className="rounded-md h-56 w-full overflow-hidden">
-                    <img
-                        className="object-cover w-full h-full"
-                        src={
-                            featuredImage ? `http://localhost:1337${featuredImage.url}` : 'https://via.placeholder.com/1080'
-                        }
-                    />
-                </div>
-                <article className="prose  max-w-full w-full my-4">
-                    <ReactMarkdown
-                        components={{
-                            img: (props) => {
-                                const copyProps = { ...props };
-                                if (!props?.src.includes('http')) {
-                                    copyProps.src = `http://localhost:1337${props?.src}`;
-                                }
-                                return <img {...copyProps} />;
-                            },
-                        }}
-                    >
-                        {content}
-                    </ReactMarkdown>
-                </article>
-            </>
-        );
-    }
+```astro
+    ---
+import { marked } from "marked";
+import { formatDistance, format } from 'date-fns';
+
+const { post } = Astro.props;
+
+const { featuredImage, title, content, author, readingTime, publishedAt } = post.attributes;
+const url = import.meta.env.STRAPI_URL;
+
+const authorImage = author.data.attributes.bioImage.data.attributes.url || null;
+const postImage = featuredImage.data.attributes.url || null;
+---
+
+
+<div class="container mx-auto">
+  <div class="w-full flex justify-end rounded-md">
+    <a
+      href={`/`}
+      class="inline-flex items-center justify-center px-5 py-2 border border-transparent text-base font-medium rounded-md text-white bg-yellow-500 hover:bg-yellow-400"
+    >
+      Back
+    </a>
+  </div>
+  <div class="my-4 text-center">
+    <h1 class="text-center text-4xl leading-tight text-gray-900 my-4 font-bold">
+      {title}
+    </h1>
+    <div class="text-gray-500 flex justify-center items-center space-x-2">
+      <span class="flex space-x-2 items-center overflow-hidden">
+        <img
+          class="inline-block h-8 w-8 rounded-full ring-2 ring-white"
+          src={authorImage
+            ? url + authorImage
+            : "https://via.placeholder.com/1080"}
+          alt="author picture"
+        />
+        <p class="font-medium text-xs text-gray-600 cursor-pointer">
+          {author?.name}
+        </p>
+      </span>
+      <span>&middot;</span>
+      <span>{format(new Date(publishedAt), 'MM/dd/yyyy')}</span>
+      <span>&middot;</span>
+      <span>{readingTime}</span>
+    </div>
+  </div>
+  <div class="rounded-md h-56 w-full overflow-hidden">
+    <img
+      class="object-cover w-full h-full"
+      src={postImage
+        ? url + postImage
+        : "https://via.placeholder.com/1080"}
+    />
+  </div>
+  <article class=" prose max-w-full w-full my-4">
+    <div class="rich-text" set:html={marked.parse(content)}  />
+  </article>
+</div>
+
+<style is:global>
+
+  /*******************************************
+  Rich Text Styles
+  *******************************************/
+
+  /* Headers */
+  article .rich-text h1 {
+    @apply text-4xl font-bold mb-8 text-gray-800;
+  }
+
+  article .rich-text h2 {
+    @apply text-3xl font-bold mb-8 text-gray-800;
+  }
+
+  article .rich-text h3 {
+    @apply text-2xl font-bold mb-6 text-gray-800;
+  }
+
+  article .rich-text h4 {
+    @apply text-xl font-bold mb-4 text-gray-800;
+  }
+
+  article.rich-text h5 {
+    @apply text-lg font-bold mb-4 text-gray-800;
+  }
+
+  article .rich-text h6 {
+    @apply text-base font-bold mb-4 text-gray-800;
+  }
+
+  /* Horizontal rules */
+  article .rich-text hr {
+    @apply text-gray-800 my-8;
+  }
+
+  article .rich-text a {
+    @apply text-gray-900 underline text-xl leading-relaxed;
+  }
+
+  /* Typographic replacements */
+  article .rich-text p {
+    @apply mb-8 text-xl leading-relaxed text-gray-700;
+  }
+
+  /* Emphasis */
+  article .rich-text strong {
+    @apply font-bold text-xl leading-relaxed;
+  }
+
+  article .rich-text em {
+    @apply italic text-xl leading-relaxed;
+  }
+
+  article .rich-text del {
+    @apply line-through text-xl leading-relaxed;
+  }
+
+  /* Blockquotes */
+  article .rich-text blockquote {
+    @apply border-l-4 border-gray-400 pl-4 py-2 mb-4;
+  }
+
+  /* Lists */
+  article .rich-text ul {
+    @apply list-disc pl-4 mb-4 text-gray-800;
+  }
+
+  article .rich-text ol {
+    @apply list-decimal pl-4 mb-4 text-gray-800;
+  }
+
+  article .rich-text li {
+    @apply mb-2 text-gray-800;
+  }
+
+  article .rich-text li > ul {
+    @apply list-disc pl-4 mb-2;
+  }
+
+  article.rich-text li > ol {
+    @apply list-decimal pl-4 mb-2;
+  }
+
+  /* Code blocks */
+  article .rich-text pre {
+    @apply font-mono text-gray-800 text-gray-800 rounded p-4  my-6;
+  }
+
+  article .rich-text code {
+    @apply font-mono text-gray-800 text-gray-800 rounded px-2 py-1;
+  }
+
+  /* Tables */
+  article .rich-text table {
+    @apply w-full border-collapse text-gray-800 my-6;
+  }
+
+  article .rich-text th {
+    @apply text-gray-800 text-left py-2 px-4 font-semibold border-b text-gray-800;
+  }
+
+  article .rich-text td {
+    @apply py-2 px-4 border-b text-gray-800;
+  }
+
+  /* Images */
+  article .rich-text img {
+    @apply w-full object-cover rounded-xl my-6;
+  }
+
+  /* Custom containers */
+  article .rich-text .warning {
+    @apply bg-yellow-100 border-yellow-500 text-yellow-700 px-4 py-2 rounded-lg mb-4;
+  }
+</style>
+
 ```
 
 You might notice that we have to install to packages react-markdown and date-fns. We have to install react-markdown because, as discussed earlier, Strapi's rich text editor by default only supports Markdown, but you always have the options to replace it with a text editor of your choice.
@@ -627,7 +751,6 @@ const query =
 const url = import.meta.env.STRAPI_URL;
 
 const posts = await fetch(url + "/api/posts?" + query).then((res) => res.json());
-console.log(posts, "############ HOME PAGE ############");
 ---
 
 <Layout title="Welcome to Astro.">

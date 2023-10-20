@@ -1,0 +1,41 @@
+---
+import qs from "qs";
+import Layout from "../../layouts/Layout.astro";
+import SingleBlogItem from "../../components/SingleBlogItem.astro";
+
+export async function getStaticPaths() {
+  let url = import.meta.env.STRAPI_URL + "/api/posts";
+
+  const query = qs.stringify({
+  populate: {
+    featuredImage: {
+      fields: ["name", "width", "height", "url"],
+    },
+    author: {
+      populate: {
+        bioImage: {
+          fields: ["name", "width", "height", "url"],
+        },
+      },
+    },
+    category: {
+      populate: true,
+    },
+  },
+});
+
+  const data = await fetch(url + "?" + query).then(response => response.json());
+  return data.data.map((post) => {
+    return {
+      params: { slug: post.attributes.slug },
+      props: { post },
+    };
+  });
+}
+
+const { post } = Astro.props;
+---
+
+<Layout title={post.attributes.title}>
+  <SingleBlogItem post={post} />
+</Layout>

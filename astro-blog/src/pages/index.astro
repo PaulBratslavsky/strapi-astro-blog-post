@@ -1,19 +1,35 @@
 ---
+import qs from "qs";
+
 import Layout from "../layouts/Layout.astro";
 import BlogGrid from "../components/BlogGrid.astro";
 
-const query =
-  "populate[featuredImage][fields][0]=name&populate[featuredImage][fields][1]=width&populate[featuredImage][fields][2]=height&populate[featuredImage][fields][3]=url&populate[author][populate][bioImage][fields][0]=name&populate[author][populate][bioImage][fields][1]=width&populate[author][populate][bioImage][fields][2]=height&populate[author][populate][bioImage][fields][3]=url&populate[category][populate]=true";
-const url = import.meta.env.STRAPI_URL;
+let url = import.meta.env.STRAPI_URL + "/api/posts";
 
-const posts = await fetch(url + "/api/posts?" + query).then((res) =>
-  res.json()
+const query = qs.stringify({
+  populate: {
+    featuredImage: {
+      fields: ["name", "width", "height", "url"],
+    },
+    author: {
+      populate: {
+        bioImage: {
+          fields: ["name", "width", "height", "url"],
+        },
+      },
+    },
+    category: {
+      populate: true,
+    },
+  },
+});
+
+const posts = await fetch(url + "?" + query).then((response) =>
+  response.json()
 );
-console.log(posts, "############ HOME PAGE ############");
 ---
 
 <Layout title="Welcome to Astro.">
   <BlogGrid posts={posts} />
 </Layout>
 
-<style></style>
