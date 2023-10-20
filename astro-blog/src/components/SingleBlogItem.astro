@@ -1,0 +1,163 @@
+---
+import { marked } from "marked";
+const { data } = Astro.props;
+const { featuredImage, title, content, author, readingTime} = data.attributes;
+const url = import.meta.env.STRAPI_URL;
+---
+
+<div>
+  <div class="my-4 text-center">
+    <h1 class="text-center text-4xl leading-tight text-gray-900 my-4 font-bold">
+      {title}
+    </h1>
+    <div class="text-gray-500 flex justify-center items-center space-x-2">
+      <span class="flex space-x-2 items-center overflow-hidden">
+        <img
+          class="inline-block h-8 w-8 rounded-full ring-2 ring-white"
+          src={author?.bioImage?.url
+            ? `http://localhost:1337${author?.bioImage?.url}`
+            : "https://via.placeholder.com/1080"}
+          alt="author picture"
+        />
+        <p class="font-medium text-xs text-gray-600 cursor-pointer">
+          {author?.name}
+        </p>
+      </span>
+      <span>&middot;</span>
+      <span>{new Date().getDate().toLocaleString()}</span>
+      <span>&middot;</span>
+      <span>{readingTime}</span>
+    </div>
+  </div>
+  <div class="rounded-md h-56 w-full overflow-hidden">
+    <img
+      class="object-cover w-full h-full"
+      src={featuredImage
+        ? url + featuredImage.url
+        : "https://via.placeholder.com/1080"}
+    />
+  </div>
+  <article class="rich-text prose max-w-full w-full my-4">
+    <div set:html={marked.parse(content)} />
+  </article>
+</div>
+
+<style>
+  @tailwind base;
+  @tailwind components;
+  @tailwind utilities;
+
+  /******************************************* 
+  Rich Text Styles
+  *******************************************/
+
+  /* Headers */
+  article.rich-text h1 {
+    @apply text-4xl font-bold mb-8 color-secondary;
+  }
+
+  article.rich-text h2 {
+    @apply text-3xl font-bold mb-8 color-secondary;
+  }
+
+  article.rich-text h3 {
+    @apply text-2xl font-bold mb-6 color-secondary;
+  }
+
+  article.rich-text h4 {
+    @apply text-xl font-bold mb-4 color-secondary;
+  }
+
+  article.rich-text h5 {
+    @apply text-lg font-bold mb-4 color-secondary;
+  }
+
+  article.rich-text h6 {
+    @apply text-base font-bold mb-4 color-secondary;
+  }
+
+  /* Horizontal rules */
+  article.rich-text hr {
+    @apply color-secondary my-8;
+  }
+
+  article.rich-text a {
+    @apply text-gray-900 underline text-xl leading-relaxed;
+  }
+
+  /* Typographic replacements */
+  article.rich-text p {
+    @apply mb-8 text-xl leading-relaxed color-secondary;
+  }
+
+  /* Emphasis */
+  article.rich-text strong {
+    @apply font-bold text-xl leading-relaxed;
+  }
+
+  article.rich-text em {
+    @apply italic text-xl leading-relaxed;
+  }
+
+  article.rich-text del {
+    @apply line-through text-xl leading-relaxed;
+  }
+
+  /* Blockquotes */
+  article.rich-text blockquote {
+    @apply border-l-4 border-gray-400 pl-4 py-2 mb-4;
+  }
+
+  /* Lists */
+  article.rich-text ul {
+    @apply list-disc pl-4 mb-4 color-secondary;
+  }
+
+  article.rich-text ol {
+    @apply list-decimal pl-4 mb-4 color-secondary;
+  }
+
+  article.rich-text li {
+    @apply mb-2 color-secondary;
+  }
+
+  article.rich-text li > ul {
+    @apply list-disc pl-4 mb-2;
+  }
+
+  article.rich-text li > ol {
+    @apply list-decimal pl-4 mb-2;
+  }
+
+  /* Code blocks */
+  article.rich-text pre {
+    @apply font-mono color-secondary color-secondary rounded p-4  my-6;
+  }
+
+  article.rich-text code {
+    @apply font-mono color-secondary color-secondary rounded px-2 py-1;
+  }
+
+  /* Tables */
+  article.rich-text table {
+    @apply w-full border-collapse color-secondary my-6;
+  }
+
+  article.rich-text th {
+    @apply color-secondary text-left py-2 px-4 font-semibold border-b color-secondary;
+  }
+
+  article.rich-text td {
+    @apply py-2 px-4 border-b color-secondary;
+  }
+
+  /* Images */
+  article.rich-text img {
+    @apply w-full object-cover rounded-xl my-6;
+  }
+
+  /* Custom containers */
+  article.rich-text .warning {
+    @apply bg-yellow-100 border-yellow-500 text-yellow-700 px-4 py-2 rounded-lg mb-4;
+  }
+</style>
