@@ -1,10 +1,14 @@
+This article has been update to use **Astro 3** and **Strapi 4** by Paul Bratslavsky.
+
+You can find the completed project [here](https://github.com/PaulBratslavsky/strapi-astro-blog-post).
+
 ## What is Astro ?
 
 Astro is another JavaScript-based static site generator, but ships ZERO JavaScript to the client by default. Astro provides a frictionless developer experience to get started as it allows you to bring your framework to build sites and has Astro components.
 
 Thats right!
 
-You can use React, Angular, Svelte, or Vue or together at any point in the project to build a super-fast and SEO-friendly website.
+You can use HTML, React, Angular, Svelte, or Vue or together at any point in the project to build a super-fast and SEO-friendly website.
 
 What's unique about Astro compared to other static site generators is its first-class support for loading JavaScript on-demand.
 
@@ -25,19 +29,19 @@ Assuming that introduction got you interested in Astro, let move ahead and build
 
 ## **What to expect from this tutorial?**
 
-In this tutorial, we will be learning to build a blogging application using Strapi as the CMS and Astro powered by React to build the frontend.
+In this tutorial, we will be learning to build a blogging application using Strapi as the CMS and Astro powered by HTML to build the frontend.
+
+![Blog](resources/simple-blog.png)
 
 Why a blog application? When playing around with a new technology building, a decoupled blog application encompasses all the concepts you will need to know to build any web application from database concepts, web APIs, and frontend design and development.
 
 While this tutorial is beginner-friendly, you'll need to have/do the following before you can follow along
 
-- Basic understanding of React. The React team recently released a [comprehensive documentation](https://beta.reactjs.org/)
+- Basic understanding of HTML and CSS.
 - Basic understanding of [Strapi](https://docs.strapi.io/developer-docs/latest/getting-started/introduction.html).
 - Familiarity with [Tailwind CSS classes](https://tailwindcss.com/docs).
 - Skim through the syntax of [Astro](https://docs.astro.build/core-concepts/astro-components/)
-- Have one of these Node.js versions installed - v12.20.0, v14.13.1, v16.0.0, or higher.
-
-[Demo of what we will be building](https://app.tella.tv/video/ckvp7r624000009mq3h2h16po/embed)
+- Have one of these Node.js versions installed - v18.0.0, or higher.
 
 ## Setting up the Backend
 
@@ -190,7 +194,7 @@ But before we move further, let modify the Post functionality to automatically a
 
 Strapi, by default, is extensible; hence it allows us to modify the functionality as we like it. That is why I prefer to see Strapi than more of framework + headless CMS rather than just a headless CMS.
 
-To better understand a Strapi project, look at the [Project Structure documentation](https://docs.strapi.io/developer-docs/latest/setup-deployment-guides/file-structure.html) and the [Backend customization](https://docs.strapi.io/developer-docs/latest/development/backend-customization.html) in the Strapi documentation. There is also a great article on the Strapi blog regarding [Content Modelling in Strapi](https://strapi.io/blog/content-modelling-bite-sized-guide).
+To better understand a Strapi project, look at the [Project Structure documentation](https://docs.strapi.io/developer-docs/latest/setup-deployment-guides/file-structure.html) and the [Backend customization](https://docs.strapi.io/developer-docs/latest/development/backend-customization.html) in the Strapi documentation. There is also a great article on the Strapi YouTube video regarding [Content Modelling in Strapi](https://youtu.be/PDnWCnA6qTg?feature=shared).
 
 To get started, open your Strapi project in your favorite code editor. For this tutorial, I am going to stick to VS Code. After you have opened up the project if you have stopped the Strapi server, restart using `yarn develop`.
 
@@ -426,8 +430,6 @@ const { title } = Astro.props;
 <style is:global></style>
 ```
 
-You might find these very familiar to the index.astro page with a few additions because it is. We just abstracted all the code and deleted what we didn't need.
-
 One thing to notice is that all of this code is wrapped between two `--- /` code fences. This is the Frontmatter Script part of the Astro component, which allows dynamic building components.
 
 If you want to learn more about the layouts in Astro, check [this](https://docs.astro.build/core-concepts/layouts/) section in the documentation.
@@ -499,7 +501,13 @@ const postImage = featuredImage.data.attributes.url || null;
 
 ```
 
-By looking at that code, you might have deduced that BlogGridItem components accept a single post as a [prop](https://beta.reactjs.org/learn/passing-props-to-a-component).
+**note**: that we are using an env variable above. For us to have access to it. Create `.env` file in the root of your Astro project and add the following.
+
+```env
+  STRAPI_URL=http://localhost:1337
+```
+
+By looking at that code, you might have deduced that BlogGridItem components accept a single post as a prop.
 
 In `line 3` we are destructing the prop to get all the keys from a single post. We had a look at the API response earlier for a single post. That is the same JSON key we are destructing in this line.
 
@@ -525,7 +533,6 @@ const { posts } = Astro.props;
   }
 </div>
 
-
 ```
 
 The `BlogGrid` component is a container with a list of `BlogGridItems`. You can notice it accepts a post, a prop, and maps it to the `BlogGridItem` component while passing the single Post as the post prop.
@@ -547,7 +554,6 @@ const url = import.meta.env.STRAPI_URL;
 const authorImage = author.data.attributes.bioImage.data.attributes.url || null;
 const postImage = featuredImage.data.attributes.url || null;
 ---
-
 
 <div class="container mx-auto">
   <div class="w-full flex justify-end rounded-md">
@@ -713,16 +719,16 @@ const postImage = featuredImage.data.attributes.url || null;
 
 ```
 
-You might notice that we have to install to packages react-markdown and date-fns. We have to install react-markdown because, as discussed earlier, Strapi's rich text editor by default only supports Markdown, but you always have the options to replace it with a text editor of your choice.
+You might notice that we have to install to packages marked and date-fns. We have to install marked because, as discussed earlier, Strapi's rich text editor by default only supports Markdown, but you always have the options to replace it with a text editor of your choice.
 
 We are installing date-fns because it's a lightweight date manipulating library. We are using it here to show how old the Post has been since posting.
 
-Note: Astro components by default supports Markdown. Since we use React to make the components, we need to install a library to handle Markdown.
+We will also install the qs library that will allow us to build our query strings using object notation.
 
-Let's go ahead and install this library. Open your terminal in the project directory or if you are using VS Code, open your terminal and paste the following command.
+Let's go ahead and install the following libraries. Open your terminal in the project directory or if you are using VS Code, open your terminal and paste the following command.
 
 ```bash
-    yarn add react-markdown date-fns
+    yarn add marked date-fns qs
 ```
 
 Further looking at the code, you might notice that we are overriding the default img component to add the local Strapi Url here as well.
@@ -742,28 +748,45 @@ Note: `.md` files are also treated as routes if created inside pages directory, 
 To build our main page, open your `index.astro` file and paste the following lines of code.
 
 ```astro
-  ---
+---
+import qs from "qs";
+
 import Layout from "../layouts/Layout.astro";
 import BlogGrid from "../components/BlogGrid.astro";
 
-const query =
-  "populate[featuredImage][fields][0]=name&populate[featuredImage][fields][1]=width&populate[featuredImage][fields][2]=height&populate[featuredImage][fields][3]=url&populate[author][populate][bioImage][fields][0]=name&populate[author][populate][bioImage][fields][1]=width&populate[author][populate][bioImage][fields][2]=height&populate[author][populate][bioImage][fields][3]=url&populate[category][populate]=true";
-const url = import.meta.env.STRAPI_URL;
+let url = import.meta.env.STRAPI_URL + "/api/posts";
 
-const posts = await fetch(url + "/api/posts?" + query).then((res) => res.json());
+const query = qs.stringify({
+  populate: {
+    featuredImage: {
+      fields: ["name", "width", "height", "url"],
+    },
+    author: {
+      populate: {
+        bioImage: {
+          fields: ["name", "width", "height", "url"],
+        },
+      },
+    },
+    category: {
+      populate: true,
+    },
+  },
+});
+
+const posts = await fetch(url + "?" + query).then((response) =>
+  response.json()
+);
 ---
 
 <Layout title="Welcome to Astro.">
   <BlogGrid posts={posts} />
 </Layout>
 
-<style></style>
 
 ```
 
-Since we have already abstracted most of the code from the initial `index.astro` file, we have replaced it with the `BaseLayout` component.
-
-With the couple-few lines in the top, we imported the needed components, the `BaseLayout` and the `BlogGrid`. Keep in mind this was one is Astro component and the other is React component, the awesome power of Astro!
+With the couple-few lines in the top, we imported the needed components, the `Layout` and the `BlogGrid`. 
 
 Following that we are using fetch to send a request to Strapi to pull all the blog posts. Since Astro supports top-level await, we do not need to have an async function.
 
@@ -773,27 +796,53 @@ Let move to the single post item.
 
 Since Astro uses file-based routing, it supports dynamic parameters using `[bracket]` notation into the filename. This allows mapping a specific file to make different routes.
 
-Create a file under `pages/blog/[slug].astro`. Because this has bracket notation, this route will be mapped to anything that follows `/Post`. Eg: `/post/hello-world, /post/lorem-ipsum`, etc.
+Create a file under `pages/post/[slug].astro`. Because this has bracket notation, this route will be mapped to anything that follows `/post`. Eg: `/post/hello-world, /post/lorem-ipsum`, etc.
 
 Copy the following lines of code to the newly created files
 
-```
-    ---
-    import BaseLayout from "../../layout/BaseLayout.astro"
-    import SingleBlogItem from "../../components/SingleBlogItem.jsx"
+```astro
+---
+import qs from "qs";
+import Layout from "../../layouts/Layout.astro";
+import SingleBlogItem from "../../components/SingleBlogItem.astro";
 
-    export async function getStaticPaths() {
-       const posts  =  await fetch(`http://localhost:1337/api/posts`).then(res => res.json())
-      return  posts.map(post =>  ({params : {slug:post.slug}}))
-    }
+export async function getStaticPaths() {
+  let url = import.meta.env.STRAPI_URL + "/api/posts";
 
-    const {slug} =  Astro.request.params
-    const postItem = await fetch(`http://localhost:1337/api/posts?slug=${slug}`).then(x  => x.json())
-    ---
+  const query = qs.stringify({
+  populate: {
+    featuredImage: {
+      fields: ["name", "width", "height", "url"],
+    },
+    author: {
+      populate: {
+        bioImage: {
+          fields: ["name", "width", "height", "url"],
+        },
+      },
+    },
+    category: {
+      populate: true,
+    },
+  },
+});
 
-    <BaseLayout title={postItem[0]?.title}>
-    <SingleBlogItem post={postItem[0]}/>
-    </BaseLayout>
+  const data = await fetch(url + "?" + query).then(response => response.json());
+  return data.data.map((post) => {
+    return {
+      params: { slug: post.attributes.slug },
+      props: { post },
+    };
+  });
+}
+
+const { post } = Astro.props;
+---
+
+<Layout title={post.attributes.title}>
+  <SingleBlogItem post={post} />
+</Layout>
+
 ```
 
 One important thing to keep in mind is that pages using dynamic routes must export a [getStaticPaths()](https://docs.astro.build/reference/api-reference/#getstaticpaths) function returning all the names of the `files/pages` it should generate. If you have a background in Next.js and a simple framework, you might be familiar with this concept.
@@ -804,7 +853,7 @@ If you recall, when creating the blog grid item component, we had a `href` that 
 
 We extract the slug parameter from the URL using the handy Astro.request.params object to get the exact Post. We query Strapi for the Post by slug, using Strapi's [Content API filters](https://strapi.io/documentation/developer-docs/latest/developer-resources/content-api/content-api.html#filters). This is why we never implemented a custom endpoint to get the Post by the slug.
 
-Moving to the HTML part of the component, we simply wrap the `SingleBlogItem` component with the `BaseLayout` while passing the queried Post as props to the component. The `BaseLayout`, an Astro component, still accepts props we declared earlier in the frontmatter script.
+Moving to the HTML part of the component, we simply wrap the `SingleBlogItem` component with the `Layout` while passing the queried Post as props to the component. The `Layout`, an Astro component, still accepts props we declared earlier in the frontmatter script.
 
 And we are done! Pat yourself in the back and start up the dev server using `yarn dev`
 
@@ -814,8 +863,10 @@ In this tutorial, we looked that how we can use Strapi and Astro to build a simp
 
 We were able to build a complete backend using Strapi in a matter of minutes rather than spending Time figuring out building the APIs, handling image uploads, and building a GUI to manage posts.
 
-Using Astro, we could get started by simply using our knowledge on React and making a complete blog site. If you are further interested in deploying to any static hosting, you can follow the [deployment guide](https://docs.astro.build/guides/deploy/) given by Astro
+Using Astro, we could get started by simply using our knowledge of HTML to make a complete blog site.
 
-You can find the complete code for this tutorial here on GitHub. You can also find me on Twitter, LinkedIn, and GitHub.
+If you are further interested in deploying to any static hosting, you can follow the [deployment guide](https://docs.astro.build/guides/deploy/) given by Astro
+
+You can find the complete code for this tutorial [here on GitHub](https://github.com/PaulBratslavsky/strapi-astro-blog-post).
 
 Drop a comment to let me know what you thought of this article.
