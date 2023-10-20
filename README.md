@@ -168,7 +168,7 @@ Scroll down and tick the following checkbox under the Permissions section as sho
 
 **Accessing the Post endpoints**
 
-To access any API endpoint in Strapi, we need to append the pluralized name of the collection type to the base URL. In our case, to access the Post, the URL is [http://localhost:1337/posts](http://localhost:1337/api/posts). Since we allowed public access to the /posts endpoints, we can access this endpoint. You will see an empty array JSON response if you visit the endpoint since we did not add any posts yet.
+To access any API endpoint in Strapi, we need to append the pluralized name of the collection type to the base URL. In our case, to access the Post, the URL is [http://localhost:1337/api/posts](http://localhost:1337/api/posts). Since we allowed public access to the /posts endpoints, we can access this endpoint. You will see an empty array JSON response if you visit the endpoint since we did not add any posts yet.
 
 ```json
 {
@@ -204,22 +204,18 @@ const readingTime = require("reading-time");
 module.exports = {
   async beforeCreate(event) {
     console.log("########## BEFORE CREATE ##########");
-    console.log(event);
-    console.log(event.model.uid);
-    console.log(event.params.data);
-
-    event.params.data.readingTime =
+    if (event.params.data.content) {
+      event.params.data.readingTime =
       readingTime(event.params.data.content)?.text || null;
+    }
   },
 
   async beforeUpdate(event) {
-    console.log("########## BEFORE UPDATE ##########");
-    console.log(event);
-    console.log(event.model.uid);
-    console.log(event.params.data);
-
-    event.params.data.readingTime =
+    console.log(, "########## BEFORE UPDATE ##########");
+    if (event.params.data.content) {
+      event.params.data.readingTime =
       readingTime(event.params.data.content)?.text || null;
+    }
   },
 };
 ```
@@ -240,67 +236,117 @@ To restart start the server type yarn develop or npm run develop
 
 **Finalizing the backend**
 
-We are done with all the needed configuration and setup for our Strapi backend. Before moving to the frontend, let's insert categories and authors and associate them with the respective posts. 
+We are done with all the needed configuration and setup for our Strapi backend. Before moving to the frontend, let's insert categories and authors and associate them with the respective posts.
 
 Go ahead and create few posts, categories and authors.
 
 I have gone ahead and added five posts and created the respective authors and categories.
 
-![Posts]()
+![Posts](resources/13-5-posts.png)
 
 Before we move on to our frontend, let look at how /posts API endpoints to view our JSON response.
 
-[http://localhost:1337/posts](http://localhost:1337/api/posts?populate=*)
+But first we must populate all of our required fields. You can learn more about **populate** and **filtering** in [this](https://strapi.io/blog/demystifying-strapi-s-populate-and-filtering) blog post.
 
+We will use Strapi's Query Builder tool to help us construct our query string.
 
+You can find it [here](https://docs.strapi.io/dev-docs/api/rest/interactive-query-builder).
+
+**Object Notation:**
+
+```js
+{
+  populate: {
+    featuredImage: {
+      fields: ["name", "width", "height", "url"]
+    },
+    author: {
+      populate: {
+        bioImage: {
+          fields: ["name", "width", "height", "url"]
+        }
+      }
+    },
+    category: {
+      populate: true,
+    },
+  },
+
+}
 ```
-    
-```
 
-Let go forth, my friends, to the front end!
+[**LHS Notation**](http://localhost:1337/api/posts?populate[featuredImage][fields][0]=name&populate[featuredImage][fields][1]=width&populate[featuredImage][fields][2]=height&populate[featuredImage][fields][3]=url&populate[author][populate][bioImage][fields][0]=name&populate[author][populate][bioImage][fields][1]=width&populate[author][populate][bioImage][fields][2]=height&populate[author][populate][bioImage][fields][3]=url&populate[category][populate]=true)
+
+**Our JSON Response**
+
+![Response](resources/14-json-response.png)
+
+Now that we know that our backend is working, let go forth to the front end!
 
 ## **Setting up an Astro Project**
 
 Since we have completed the API using Strapi, let's move on and, in this section, build the frontend functionality with Astro.
 
-First off, let got ahead and create the project directory and move into the directory. For this tutorial, let's call our blog, AstroBlog.
+In the root of your project let's run the following command to create our Astro project.
 
 ```bash
-    mkdir astro-blog && cd astro-blog
+    npm create astro@latest
 ```
 
-To create your Astro project, open your terminal and run either of the following commands based on the package manager of your choice:
-
-```
-    # With NPM
-    mkdir astro-blog && npm init astro
-
-    # Yarn
-    yarn create astro
-```
-
-![](https://paper-attachments.dropbox.com/s_25158760999C363C0CEB83910E101D2BF43A000DD0C988A562E876F1C34E4CCB_1635658966266_image.png)
-
-You can choose a framework of your choice, but to follow along with this tutorial, choose React and wait for the step to finish.
-
-![](https://paper-attachments.dropbox.com/s_25158760999C363C0CEB83910E101D2BF43A000DD0C988A562E876F1C34E4CCB_1635658986541_image.png)
-
-As the next steps, follow the instructions given. Step 2 is optional.
-
-![](https://paper-attachments.dropbox.com/s_25158760999C363C0CEB83910E101D2BF43A000DD0C988A562E876F1C34E4CCB_1635659098191_image.png)
+Follow the install process and complete the following questions.
 
 ```bash
-      1: npm install (or pnpm install, yarn, etc)
+ astro   Launch sequence initiated.
 
-      # optional
-      2: git init && git add -A && git commit -m "Initial commit"
+   dir   Where should we create your new project?
+         ./astro-blog
 
-      3: npm run dev (or pnpm, yarn, etc)
+  tmpl   How would you like to start your new project?
+         Include sample files
+      ✔  Template copied
+
+  deps   Install dependencies?
+         Yes
+      ✔  Dependencies installed
+
+    ts   Do you plan to write TypeScript?
+         No
+      ◼  No worries! TypeScript is supported in Astro by default,
+         but you are free to continue writing JavaScript instead.
+
+   git   Initialize a new git repository?
+         No
+      ◼  Sounds good! You can always run git init manually.
+
+  next   Liftoff confirmed. Explore your project!
+
+         Enter your project directory using cd ./astro-blog
+         Run npm run dev to start the dev server. CTRL+C to stop.
+         Add frameworks like react or tailwind using astro add.
+
+         Stuck? Join us at https://astro.build/chat
+
+╭──🎃─╮  Houston:
+│ ◠ ◡ ◠  Good luck out there, astronaut! 🚀
 ```
 
-After running Step 3 and going to [http://localhost:3000/](http://localhost:3000/), this is what you will see.
+Once the install is complete, change directory into `astro-blog` and let's install **Tailwind CSS**.
 
-![](https://paper-attachments.dropbox.com/s_25158760999C363C0CEB83910E101D2BF43A000DD0C988A562E876F1C34E4CCB_1635697579756_image.png)
+We can do it by running the following command.
+
+```bash
+  npx astro add tailwind
+```
+
+Just say **yes** to every question. And wait for the magic to finish.
+
+You can now start your project by running the following. Just make sure that you are in the **Astro** project folder.
+
+```bash
+  yarn dev
+```
+
+![Astro Project](resources/15-astro-project.png)
 
 Cool! The installation is complete. Stop the dev server and open the project folder using your favorite code editor or IDE. As always, we will be using VS Code.
 
@@ -308,83 +354,19 @@ Cool! The installation is complete. Stop the dev server and open the project fol
 
 You can examine the folder structure by clicking on the file explorer icon (left side, first icon) to explore the folder structure.
 
-![](https://paper-attachments.dropbox.com/s_25158760999C363C0CEB83910E101D2BF43A000DD0C988A562E876F1C34E4CCB_1635673572956_image.png)
+![](resources/16-astro-folder.png)
 
 One thing you might find new is the .astro files. Astro, as mentioned in the introduction, comes with its component file. Similar to frameworks such as Vue, it is a single-file component where the file houses all of the JS, HTML, and styles as one single file.
 
 Astro also scopes each style to its relevant component, so they do not leak to other components. If you are interested in knowing more about the folder structures and files of Astro, visit [this part](https://docs.astro.build/core-concepts/project-structure/) of the section in the Astro documentation.
 
-Before we get started, we get started on developing. Let's set up [Tailwind](https://tailwindcss.com/), a utility first CSS framework, the [React renderer](https://www.npmjs.com/package/@astrojs/renderer-react) for Astro, and the Astro plugin supporting React.
-
 Heads up!
 
-Astro supports other frameworks and styling options. We are choosing React and Tailwind for this tutorial. If you want to learn more about the other options, check for other renderers and styling options.
+Astro supports other frameworks and styling options. We are choosing HTML, JS and Tailwind for this tutorial.
 
-**Setting up Tailwind CSS**
+If you want to learn more about the other options, check for other renderers and styling options.
 
-Open up a terminal in the root of the project and run the following command to install Tailwind CSS:
-
-```bash
-    npm install --save-dev tailwindcss
-```
-
-After the installation is complete, run the following command to create the necessary config files for Tailwind. Running this command will create a minimal `tailwind.config.js` file at the root of your project:
-
-```bash
-    npx tailwindcss init
-```
-
-Open up the newly created `tailwind.config.js` and modify it according to the following parts.
-
-```
-    module.exports = {
-      mode: 'jit',
-      purge: ['./public/**/*.html', './src/**/*.{astro,js,jsx,svelte,ts,tsx,vue}'],
-      // ...other options come here
-    };
-```
-
-Astro's built-in Tailwind support only works with Tailwind JIT mode, and the purge key denotes paths the Tailwind compiles should look to remove unused CSS classes from the production build.
-
-If you want to learn more about this optimization, check these [Tailwind docs](https://tailwindcss.com/docs/optimizing-for-production). We will be coming back to this file later again to install some Tailwind plugins hence the comment.
-
-One last configuration, and we are good to have Tailwind in our toolbelt to use.
-
-Next open `astro.config.mjs` and add the following snippet of code. This enables Astro to support JIT in the dev server.
-
-```
-      export default {
-    +   devOptions: {
-    +     tailwindConfig: './tailwind.config.js',
-    +   },
-      };
-```
-
-**Include Tailwind in your CSS**
-
-That is the last configuration we need to get Tailwind CSS working, and now we have to include Tailwind in your css.
-
-1. Create a global stylesheet under `src/styles/global.css` and add the usual [@tailwind directives](https://tailwindcss.com/docs/installation#include-tailwind-in-your-css)
-
-```
-    @tailwind base;
-    @tailwind components;
-    @tailwind utilities;
-```
-
-2. Import this CSS file in the `<head>` to your index.astro file
-
-```
-    <head>
-      <link rel="stylesheet" href={Astro.resolve('../styles/global.css')}>
-    </head>
-```
-
-3. Finally open up your terminal and run the following to start the dev server.
-
-```bash
-    yarn dev
-```
+But now, let's create our layout.
 
 **Creating the layout**
 
@@ -401,35 +383,47 @@ The single blog item would look this below
 
 ![](https://paper-attachments.dropbox.com/s_25158760999C363C0CEB83910E101D2BF43A000DD0C988A562E876F1C34E4CCB_1636026610718_Single+Blog+page.png)
 
-First and foremost, let start creating the base layout so we can reuse the common page layouts. Create an Astro component under `/src/layout/BaseLayout.astro` and copy the following block of code.
+First and foremost, let start creating the base layout we can paste the following code in `/src/layouts/Layout.astro` component.
 
-```
-    ---
-    let title = 'Blog';
-    ---
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width">
-        <title>{`StrapiAstro| ${title}`}</title>
-            <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-           <link rel="stylesheet" type="text/css" href={Astro.resolve("../styles/global.css")}>
-    </head>
-    <body>
-        <main>
-            <header class="shadow mb-8">
-                <div>
-                    <a href="/" class="block text-black text-2xl font-bold text-center py-4">
-                        Astro Blog
-                    </a>
-                </div>
-            </header>
-            <div class="container mx-auto my-4">
-                <slot/>
-            </div>
-        </main>
-    </body>
-    </html>
+```astro
+---
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content="Astro description" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+  </head>
+  <body>
+    <main>
+      <header class="shadow mb-8">
+        <div>
+          <a
+            href="/"
+            class="block text-black text-2xl font-bold text-center py-4"
+          >
+            Astro Blog
+          </a>
+        </div>
+      </header>
+      <div class="container mx-auto my-4">
+        <slot />
+      </div>
+    </main>
+  </body>
+</html>
+
+<style is:global></style>
 ```
 
 You might find these very familiar to the index.astro page with a few additions because it is. We just abstracted all the code and deleted what we didn't need.
@@ -446,59 +440,63 @@ Before we start putting everything together, let's individually create all the U
 2. BlogGridItem
 3. SingleBlogItem
 
-Let's make use of React to build these components. Let's start by creating the following files under the `/src/components` directory.
+Let's start by creating the following files under the `/src/components` directory.
 
 **Creating the blog grid items.**
 
-Create a file under `src\components\BlogGridItem.jsx` and copy the following lines of code
+Create a file under `src\components\BlogGridItem.astro` and copy the following lines of code
 
-```
-    import React from 'react';
-    export default function BlogGridItem({ post }) {
-        const { title, content, slug, featuredImage, excerpt, author } = post;
-        return (
-            <div className="rounded-md overflow-hidden shadow-sm p-4  transition-transform h-auto">
-                <a href={`/post/${slug}`}>
-                    <div className="rounded-md h-48 w-full overflow-hidden">
-                        <img
-                            className="object-cover w-full h-full"
-                            src={
-                                featuredImage
-                                    ? `http://localhost:1337${featuredImage.url}`
-                                    : 'https://via.placeholder.com/1080'
-                            }
-                        />
-                    </div>
-                    <div>
-                        <h1 className="my-2 font-bold text-xl text-gray-900">{title}</h1>
-                        <p className="my-2 text-gray-700 line-clamp-3">{excerpt}</p>
-                    </div>
-                    <div className="flex justify-between my-4 items-center">
-                        <div className="flex space-x-2 items-center overflow-hidden">
-                            <img
-                                class="inline-block h-8 w-8 rounded-full ring-2 ring-white"
-                                src={
-                                    author?.bioImage?.url
-                                        ? `http://localhost:1337${author?.bioImage?.url}`
-                                        : 'https://via.placeholder.com/1080'
-                                }
-                                alt="author picture"
-                            />
-                            <p className="font-medium text-xs text-gray-600 cursor-pointer">{author?.name}</p>
-                        </div>
-                        <div class="inline-flex rounded-md ">
-                            <a
-                                href={`/post/${slug}`}
-                                class="inline-flex items-center justify-center px-5 py-2 border border-transparent text-base font-medium rounded-md text-white bg-yellow-500 hover:bg-yellow-400"
-                            >
-                                Read article
-                            </a>
-                        </div>
-                    </div>
-                </a>
-            </div>
-        );
-    }
+```astro
+ ---
+const { post } = Astro.props;
+const { slug, featuredImage, title, excerpt, author } = post.attributes;
+const url = import.meta.env.STRAPI_URL;
+
+const authorImage = author.data.attributes.bioImage.data.attributes.url || null;
+const postImage = featuredImage.data.attributes.url || null;
+---
+
+<div
+  class="rounded-md overflow-hidden shadow-sm p-4 transition-transform h-auto"
+>
+  <a href={`/post/${slug}`}>
+    <div class="rounded-md h-48 w-full overflow-hidden">
+      <img
+        class="object-cover w-full h-full"
+        src={postImage
+          ? url + postImage
+          : "https://via.placeholder.com/1080"}
+      />
+    </div>
+    <div>
+      <h1 class="my-2 font-bold text-xl text-gray-900">{title}</h1>
+      <p class="my-2 text-gray-700 line-clamp-3">{excerpt}</p>
+    </div>
+    <div class="flex justify-between my-4 items-center">
+      <div class="flex space-x-2 items-center overflow-hidden">
+        <img
+          class="inline-block h-8 w-8 rounded-full ring-2 ring-white"
+          src={authorImage
+            ? url + authorImage
+            : "https://via.placeholder.com/1080"}
+          alt="author picture"
+        />
+        <p class="font-medium text-xs text-gray-600 cursor-pointer">
+          {author?.name}
+        </p>
+      </div>
+      <div class="inline-flex rounded-md">
+        <a
+          href={`/post/${slug}`}
+          class="inline-flex items-center justify-center px-5 py-2 border border-transparent text-base font-medium rounded-md text-white bg-yellow-500 hover:bg-yellow-400"
+        >
+          Read article
+        </a>
+      </div>
+    </div>
+  </a>
+</div>
+
 ```
 
 By looking at that code, you might have deduced that BlogGridItem components accept a single post as a [prop](https://beta.reactjs.org/learn/passing-props-to-a-component).
@@ -511,17 +509,22 @@ We are appending the Strapi URL to the img src because Strapi does not append it
 
 **Creating the blog grids**
 
-Create a file under `src\components\BlogGrid.jsx` and paste the following code
+Create a file under `src\components\BlogGrid.astro` and paste the following code
 
-```
-    import BlogGridItem from './BlogGridItem';
-    export default function BlogGrid({ posts }) {
-        return (
-            <div className="grid grid-cols-3 gap-6">
-                {posts && posts.length > 0 ? posts.map((post) => <BlogGridItem post={post} />) : 'No posts founds'}
-            </div>
-        );
-    }
+```astro
+---
+import BlogGridItem from "./BlogGridItem.astro";
+const { posts } = Astro.props;
+---
+
+<div class="grid grid-cols-3 gap-6">
+  {
+    posts.data && posts.data.length > 0
+      ? posts.data.map((post) => <BlogGridItem post={post} />)
+      : "No posts founds"
+  }
+</div>
+
 ```
 
 The `BlogGrid` component is a container with a list of `BlogGridItems`. You can notice it accepts a post, a prop, and maps it to the `BlogGridItem` component while passing the single Post as the post prop.
@@ -614,16 +617,25 @@ Note: `.md` files are also treated as routes if created inside pages directory, 
 
 To build our main page, open your `index.astro` file and paste the following lines of code.
 
-```
-    ---
-    // Component Imports
-    import BaseLayout from "../layout/BaseLayout.astro"
-    import BlogGrid from "../components/BlogGrid.jsx"
-    const posts  =  await fetch(`http://localhost:1337/posts`).then(res => res.json())
-    ---
-    <BaseLayout>
-        <BlogGrid posts={posts}/>
-    </BaseLayout>
+```astro
+  ---
+import Layout from "../layouts/Layout.astro";
+import BlogGrid from "../components/BlogGrid.astro";
+
+const query =
+  "populate[featuredImage][fields][0]=name&populate[featuredImage][fields][1]=width&populate[featuredImage][fields][2]=height&populate[featuredImage][fields][3]=url&populate[author][populate][bioImage][fields][0]=name&populate[author][populate][bioImage][fields][1]=width&populate[author][populate][bioImage][fields][2]=height&populate[author][populate][bioImage][fields][3]=url&populate[category][populate]=true";
+const url = import.meta.env.STRAPI_URL;
+
+const posts = await fetch(url + "/api/posts?" + query).then((res) => res.json());
+console.log(posts, "############ HOME PAGE ############");
+---
+
+<Layout title="Welcome to Astro.">
+  <BlogGrid posts={posts} />
+</Layout>
+
+<style></style>
+
 ```
 
 Since we have already abstracted most of the code from the initial `index.astro` file, we have replaced it with the `BaseLayout` component.
@@ -648,12 +660,12 @@ Copy the following lines of code to the newly created files
     import SingleBlogItem from "../../components/SingleBlogItem.jsx"
 
     export async function getStaticPaths() {
-       const posts  =  await fetch(`http://localhost:1337/posts`).then(res => res.json())
+       const posts  =  await fetch(`http://localhost:1337/api/posts`).then(res => res.json())
       return  posts.map(post =>  ({params : {slug:post.slug}}))
     }
 
     const {slug} =  Astro.request.params
-    const postItem = await fetch(`http://localhost:1337/posts?slug=${slug}`).then(x  => x.json())
+    const postItem = await fetch(`http://localhost:1337/api/posts?slug=${slug}`).then(x  => x.json())
     ---
 
     <BaseLayout title={postItem[0]?.title}>
