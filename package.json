@@ -3,7 +3,7 @@
     "frontend": "yarn dev --prefix ../frontend/",
     "backend": "yarn dev --prefix ../backend/",
     "setup:frontend": "cd frontend && yarn",
-    "setup:backend": "cd headless-blog && yarn",
+    "setup:backend": "cd backend && yarn",
     "setup": "yarn install && yarn setup:frontend && yarn setup:backend",
     "dev": "concurrently \"cd backend && yarn develop\" \"cd frontend && yarn dev\"",
     "seed": "cd backend && yarn strapi import -f ../seed-data.tar.gz",
