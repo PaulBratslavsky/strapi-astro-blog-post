@@ -10,8 +10,8 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/tailwind": "^5.0.2",
-    "astro": "^3.3.2",
+    "@astrojs/tailwind": "^5.1.0",
+    "astro": "^4.2.1",
     "date-fns": "^2.30.0",
     "marked": "^9.1.2",
     "qs": "^6.11.2",
